@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>المحقق الذهني 🔍</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f7f7f7;
+      text-align: center;
+      padding: 20px;
+    }
+    .hidden { display: none; }
+    .section {
+      margin: 20px auto;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background: white;
+      max-width: 600px;
+    }
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 10px 0;
+    }
+    .evidence {
+      background: #e9f5ff;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    #timer {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #c00;
+    }
+  </style>
+</head>
+<body>
+
+<div class="section" id="login-screen">
+  <h2>تسجيل الدخول</h2>
+  <input type="text" id="player-name" placeholder="اسم المحقق" />
+  <button onclick="startGame()">ابدأ التحقيق</button>
+</div>
+
+<div class="section hidden" id="case-screen">
+  <h2>🧩 القضية:</h2>
+  <p id="case-text"></p>
+  <h3>🧾 الأدلة:</h3>
+  <ul id="evidence-list"></ul>
+  <div id="timer">الوقت المتبقي: <span id="time-left">30</span> ثانية</div>
+  <button onclick="showVoting()">تابع للتصويت</button>
+</div>
+
+<div class="section hidden" id="voting-screen">
+  <h3>👥 من تعتقد أنه الجاني؟</h3>
+  <ul id="suspects-list"></ul>
+  <div id="timer-vote">الوقت المتبقي للتصويت: <span id="time-left-vote">20</span> ثانية</div>
+</div>
+
+<div class="section hidden" id="result-screen">
+  <h2>النتيجة 🧠</h2>
+  <p id="result-text"></p>
+  <p>نقاطك: <span id="player-score">0</span></p>
+  <button onclick="startGame()">جريمة جديدة 🔁</button>
+</div>
+
+<audio id="correct-sound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="wrong-sound" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
+
+<script>
+  const cases = [
+    {
+      description: "تم العثور على جثة في المكتبة، بجانبها كتاب ممزق وفنجان قهوة مكسور.",
+      evidences: ["النافذة كانت مفتوحة", "أثر أقدام باتجاه الطابق العلوي", "قهوة مسمومة"],
+      suspects: ["أحمد - صديق الضحية", "ليلى - موظفة المكتبة", "فؤاد - زائر غريب"],
+      culprit: "ليلى - موظفة المكتبة"
+    },
+    {
+      description: "اختفى تمثال ثمين من المتحف أثناء انقطاع الكهرباء.",
+      evidences: ["كاميرا مراقبة مكسورة", "قناع ملقى في الممر", "بصمات مجهولة"],
+      suspects: ["سامي - الحارس الليلي", "منى - زائرة", "خالد - عامل النظافة"],
+      culprit: "سامي - الحارس الليلي"
+    }
+  ];
+
+  let currentCase;
+  let playerName = "";
+  let playerScore = 0;
+
+  let timerInterval = null;
+  let voteTimerInterval = null;
+  let timeLeft = 30;
+  let voteTimeLeft = 20;
+
+  function startGame() {
+    playerName = document.getElementById("player-name").value.trim() || "محقق مجهول";
+    playerScore = 0;
+    updateScore();
+    loadNewCase();
+    document.getElementById("login-screen").classList.add("hidden");
+    document.getElementById("result-screen").classList.add("hidden");
+    document.getElementById("case-screen").classList.remove("hidden");
+    document.getElementById("voting-screen").classList.add("hidden");
+  }
+
+  function loadNewCase() {
+    clearTimers();
+    timeLeft = 30;
+    voteTimeLeft = 20;
+    currentCase = cases[Math.floor(Math.random() * cases.length)];
+    document.getElementById("case-text").innerText = currentCase.description;
+    const evidenceList = document.getElementById("evidence-list");
+    evidenceList.innerHTML = "";
+    currentCase.evidences.forEach(ev => {
+      const li = document.createElement("li");
+      li.className = "evidence";
+      li.innerText = ev;
+      evidenceList.appendChild(li);
+    });
+    document.getElementById("time-left").innerText = timeLeft;
+    startTimer();
+  }
+
+  function startTimer() {
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      document.getElementById("time-left").innerText = timeLeft;
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        alert("انتهى الوقت! سيتم الانتقال إلى التصويت.");
+        showVoting();
+      }
+    }, 1000);
+  }
+
+  function showVoting() {
+    clearTimers();
+    document.getElementById("case-screen").classList.add("hidden");
+    document.getElementById("voting-screen").classList.remove("hidden");
+    const suspectsList = document.getElementById("suspects-list");
+    suspectsList.innerHTML = "";
+    currentCase.suspects.forEach(s => {
+      const li = document.createElement("li");
+      const btn = document.createElement("button");
+      btn.innerText = s;
+      btn.onclick = () => showResult(s);
+      li.appendChild(btn);
+      suspectsList.appendChild(li);
+    });
+    document.getElementById("time-left-vote").innerText = voteTimeLeft;
+    startVoteTimer();
+  }
+
+  function startVoteTimer() {
+    voteTimerInterval = setInterval(() => {
+      voteTimeLeft--;
+      document.getElementById("time-left-vote").innerText = voteTimeLeft;
+      if (voteTimeLeft <= 0) {
+        clearInterval(voteTimerInterval);
+        alert("انتهى وقت التصويت! سيتم كشف الجاني الآن.");
+        showResult(null);
+      }
+    }, 1000);
+  }
+
+  function showResult(selected) {
+    clearTimers();
+    document.getElementById("voting-screen").classList.add("hidden");
+    document.getElementById("result-screen").classList.remove("hidden");
+    let result = "";
+    const correctSound = document.getElementById("correct-sound");
+    const wrongSound = document.getElementById("wrong-sound");
+
+    if (selected === currentCase.culprit) {
+      playerScore += 10;
+      updateScore();
+      result = `🎉 ممتاز يا ${playerName}! لقد كشفت الجاني.`;
+      correctSound.play();
+    } else {
+      result = selected
+        ? `❌ للأسف يا ${playerName}، الجاني كان: ${currentCase.culprit}`
+        : `❌ لم تختر أحدًا. الجاني كان: ${currentCase.culprit}`;
+      wrongSound.play();
+    }
+    document.getElementById("result-text").innerText = result;
+  }
+
+  function updateScore() {
+    document.getElementById("player-score").innerText = playerScore;
+  }
+
+  function clearTimers() {
+    clearInterval(timerInterval);
+    clearInterval(voteTimerInterval);
+  }
+</script>
+
+</body>
+</html>
