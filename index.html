@@ -3,56 +3,239 @@
 <head>
   <meta charset="UTF-8" />
   <title>المحقق الذهني 🔍</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet" />
   <style>
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f7f7f7;
-      text-align: center;
-      padding: 20px;
-    }
-    .hidden { display: none; }
-    .section {
-      margin: 20px auto;
-      padding: 15px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      background: white;
-      max-width: 600px;
-    }
-    button {
-      padding: 10px 15px;
-      margin: 5px;
-      cursor: pointer;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      margin: 10px 0;
-    }
-    .evidence {
-      background: #e9f5ff;
+      margin: 0;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      font-family: 'Cairo', sans-serif;
+      color: #eee;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       padding: 10px;
-      border-radius: 5px;
+      user-select: none;
     }
-    #timer {
-      font-size: 1.2em;
-      font-weight: bold;
+    h2, h3 {
+      margin-bottom: 10px;
+      font-weight: 700;
+      text-shadow: 1px 1px 5px #0f3460;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .section {
+      background: rgba(20, 23, 44, 0.9);
+      border-radius: 12px;
+      padding: 25px 30px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 0 20px #0f3460;
+      margin: 15px 0;
+      box-sizing: border-box;
+    }
+
+    /* زر */
+    button {
+      background: #0f3460;
+      border: none;
+      border-radius: 8px;
+      color: #d0d0ff;
+      font-weight: 600;
+      font-size: 1.1em;
+      padding: 12px 20px;
+      margin: 10px 5px 0 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+      box-shadow: 0 4px 15px rgba(15, 52, 96, 0.7);
+    }
+    button:hover:not(:disabled) {
+      background: #16213e;
+      box-shadow: 0 0 20px #1e90ff;
+    }
+    button:disabled {
+      background: #444;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    /* المدخلات */
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 15px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      border: none;
       margin-bottom: 15px;
-      color: #c00;
+      box-shadow: inset 0 0 6px #0f3460;
+      background-color: #16213e;
+      color: #eee;
+    }
+    input[type="text"]::placeholder {
+      color: #bbb;
+    }
+
+    /* الأدلة */
+    ul#evidence-list {
+      padding: 0;
+      margin-top: 10px;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    ul#evidence-list li {
+      background: #0f3460;
+      padding: 10px 14px;
+      border-radius: 10px;
+      flex: 1 1 calc(50% - 20px);
+      max-width: calc(50% - 20px);
+      box-shadow: 0 0 10px #16213e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1em;
+      user-select: text;
+    }
+    ul#evidence-list li .icon {
+      font-size: 1.3em;
+      color: #3b82f6;
+      user-select: none;
+    }
+
+    /* قائمة المشتبه بهم */
+    ul#suspects-list {
+      padding: 0;
+      margin-top: 10px;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    ul#suspects-list li button {
+      width: 100%;
+      font-size: 1.1em;
+      font-weight: 700;
+      background: #16213e;
+      box-shadow: 0 0 10px #0f3460;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      border-radius: 10px;
+      user-select: none;
+    }
+    ul#suspects-list li button:hover {
+      background: #3b82f6;
+      box-shadow: 0 0 20px #3b82f6;
+      color: #fff;
+    }
+    ul#suspects-list li button.correct {
+      background: #22c55e !important; /* أخضر */
+      box-shadow: 0 0 15px #22c55e !important;
+      color: white;
+      cursor: default;
+    }
+    ul#suspects-list li button.wrong {
+      background: #ef4444 !important; /* أحمر */
+      box-shadow: 0 0 15px #ef4444 !important;
+      color: white;
+      cursor: default;
+    }
+
+    /* العداد */
+    #timer, #timer-vote {
+      font-weight: 700;
+      font-size: 1.2em;
+      color: #3b82f6;
+      margin-bottom: 15px;
+      user-select: none;
+      text-shadow: 0 0 5px #3b82f6;
+    }
+
+    /* شاشة النتائج */
+    #result-text {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      min-height: 45px;
+      user-select: text;
+    }
+    #player-score {
+      font-weight: 700;
+      font-size: 1.3em;
+      color: #22c55e;
+      text-shadow: 0 0 8px #22c55e;
+      user-select: none;
+    }
+
+    /* شاشة البداية */
+    #login-screen {
+      max-width: 420px;
+      box-shadow: 0 0 25px #0f3460;
+    }
+    #login-screen h2 {
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      color: #0f3460;
+      text-shadow: none;
+    }
+    #login-screen button {
+      background: #3b82f6;
+      color: white;
+      font-weight: 900;
+      font-size: 1.2em;
+      transition: background-color 0.4s ease;
+      box-shadow: 0 6px 20px #3b82f6;
+    }
+    #login-screen button:hover {
+      background: #2563eb;
+      box-shadow: 0 8px 30px #2563eb;
+    }
+
+    /* أنيميشن ظهور */
+    .fade-in {
+      animation: fadeIn 1s ease forwards;
+      opacity: 0;
+    }
+    @keyframes fadeIn {
+      to {opacity: 1;}
+    }
+
+    /* Responsive - للجوال */
+    @media (max-width: 600px) {
+      .section {
+        padding: 20px 15px;
+      }
+      ul#evidence-list li {
+        flex: 1 1 100%;
+        max-width: 100%;
+      }
+      ul#suspects-list li button {
+        font-size: 1em;
+      }
+      button {
+        padding: 12px 15px;
+        font-size: 1em;
+      }
+      input[type="text"] {
+        font-size: 1em;
+      }
     }
   </style>
 </head>
 <body>
 
-<div class="section" id="login-screen">
-  <h2>تسجيل الدخول</h2>
-  <input type="text" id="player-name" placeholder="اسم المحقق" />
+<div class="section" id="login-screen" >
+  <h2>🔎 المحقق الذهني</h2>
+  <input type="text" id="player-name" placeholder="ادخل اسم المحقق" />
   <button onclick="startGame()">ابدأ التحقيق</button>
 </div>
 
-<div class="section hidden" id="case-screen">
+<div class="section hidden fade-in" id="case-screen">
   <h2>🧩 القضية:</h2>
   <p id="case-text"></p>
   <h3>🧾 الأدلة:</h3>
@@ -61,19 +244,20 @@
   <button onclick="showVoting()">تابع للتصويت</button>
 </div>
 
-<div class="section hidden" id="voting-screen">
+<div class="section hidden fade-in" id="voting-screen">
   <h3>👥 من تعتقد أنه الجاني؟</h3>
   <ul id="suspects-list"></ul>
   <div id="timer-vote">الوقت المتبقي للتصويت: <span id="time-left-vote">20</span> ثانية</div>
 </div>
 
-<div class="section hidden" id="result-screen">
+<div class="section hidden fade-in" id="result-screen">
   <h2>النتيجة 🧠</h2>
   <p id="result-text"></p>
   <p>نقاطك: <span id="player-score">0</span></p>
   <button onclick="startGame()">جريمة جديدة 🔁</button>
 </div>
 
+<!-- أصوات تفاعلية -->
 <audio id="correct-sound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
 <audio id="wrong-sound" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
 
@@ -81,13 +265,13 @@
   const cases = [
     {
       description: "تم العثور على جثة في المكتبة، بجانبها كتاب ممزق وفنجان قهوة مكسور.",
-      evidences: ["النافذة كانت مفتوحة", "أثر أقدام باتجاه الطابق العلوي", "قهوة مسمومة"],
+      evidences: ["🔍 النافذة كانت مفتوحة", "👣 أثر أقدام باتجاه الطابق العلوي", "☕️ قهوة مسمومة"],
       suspects: ["أحمد - صديق الضحية", "ليلى - موظفة المكتبة", "فؤاد - زائر غريب"],
       culprit: "ليلى - موظفة المكتبة"
     },
     {
       description: "اختفى تمثال ثمين من المتحف أثناء انقطاع الكهرباء.",
-      evidences: ["كاميرا مراقبة مكسورة", "قناع ملقى في الممر", "بصمات مجهولة"],
+      evidences: ["📷 كاميرا مراقبة مكسورة", "🎭 قناع ملقى في الممر", "🖐 بصمات مجهولة"],
       suspects: ["سامي - الحارس الليلي", "منى - زائرة", "خالد - عامل النظافة"],
       culprit: "سامي - الحارس الليلي"
     }
@@ -123,8 +307,7 @@
     evidenceList.innerHTML = "";
     currentCase.evidences.forEach(ev => {
       const li = document.createElement("li");
-      li.className = "evidence";
-      li.innerText = ev;
+      li.innerHTML = ev;
       evidenceList.appendChild(li);
     });
     document.getElementById("time-left").innerText = timeLeft;
@@ -177,20 +360,36 @@
     clearTimers();
     document.getElementById("voting-screen").classList.add("hidden");
     document.getElementById("result-screen").classList.remove("hidden");
-    let result = "";
+
+    const buttons = document.querySelectorAll('#suspects-list button');
+    buttons.forEach(btn => btn.disabled = true);
+
     const correctSound = document.getElementById("correct-sound");
     const wrongSound = document.getElementById("wrong-sound");
+
+    let result = "";
 
     if (selected === currentCase.culprit) {
       playerScore += 10;
       updateScore();
       result = `🎉 ممتاز يا ${playerName}! لقد كشفت الجاني.`;
       correctSound.play();
+
+      // تمييز الزر الصحيح بالأخضر
+      buttons.forEach(btn => {
+        if(btn.innerText === currentCase.culprit) btn.classList.add("correct");
+      });
     } else {
       result = selected
         ? `❌ للأسف يا ${playerName}، الجاني كان: ${currentCase.culprit}`
         : `❌ لم تختر أحدًا. الجاني كان: ${currentCase.culprit}`;
       wrongSound.play();
+
+      // تمييز الزر المختار بالأحمر إن اختار واحد
+      buttons.forEach(btn => {
+        if(btn.innerText === selected) btn.classList.add("wrong");
+        if(btn.innerText === currentCase.culprit) btn.classList.add("correct");
+      });
     }
     document.getElementById("result-text").innerText = result;
   }
